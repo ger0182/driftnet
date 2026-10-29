@@ -24,7 +24,8 @@ RUN npm install -g /tmp/driftnet.tgz \
 ENV NODE_ENV=production \
     DRIFTNET_HOME=/data \
     DRIFTNET_HOST=0.0.0.0 \
-    DRIFTNET_OPEN=0
+    DRIFTNET_OPEN=0 \
+    DRIFTNET_ACCESS=private
 
 VOLUME ["/data"]
 EXPOSE 8787

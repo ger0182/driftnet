@@ -87,6 +87,8 @@ bot ▸ 📌 本週 AI 大事彙整（3/11）｜新聞動態 ＋ Paperclip、Rea
 全部跑在你自己的電腦上：不用租伺服器，也不用註冊帳號。想先看看？
 **[線上試玩](https://kevinchu1110.github.io/driftnet/)** 直接在瀏覽器跑真正的網頁。
 
+> **這個 fork 目前推薦的部署方式：**若要在 Mac 長期運作、保留本機資料並提供安全的 HTTPS 網址，請使用 [Mac + Docker Compose + Cloudflare Tunnel](MAC_DEPLOY.md)。Railway 說明仍保留在 [RAILWAY.md](RAILWAY.md)，但已不是這個 fork 的主要部署方式。
+
 ### 最簡單：交給你的 AI agent 安裝
 
 把下面這句複製給 Claude Code、Cursor、Codex，或任何能在你電腦上執行指令的 agent：

@@ -1,5 +1,7 @@
 # Railway 部署（GitHub + Railway + Volume）
 
+> 本 fork 目前推薦使用 [Mac + Docker Compose + Cloudflare Tunnel](MAC_DEPLOY.md) 長期部署。此文件保留給仍要使用 Railway 的情況。
+
 這個 fork 的根目錄 `Dockerfile` 已調整為：
 
 - 直接從 **目前這個 GitHub repository 的原始碼**建置 driftnet。

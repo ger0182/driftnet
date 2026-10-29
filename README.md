@@ -89,6 +89,8 @@ bot ▸ 📌 This week in AI (3/11)｜News ＋ Paperclip, RealWonder
 Everything runs on your own computer: no server to rent, no account. Want a look first?
 **[Try the demo](https://kevinchu1110.github.io/driftnet/)** runs the real page in your browser.
 
+> **Recommended deployment for this fork:** for an always-on Mac with persistent local data and a secure HTTPS address, use [Mac + Docker Compose + Cloudflare Tunnel](MAC_DEPLOY.md). The Railway instructions remain available in [RAILWAY.md](RAILWAY.md), but are not the primary deployment path for this fork.
+
 ### Easiest: let your AI agent install it
 
 Copy this into Claude Code, Cursor, Codex or any agent that can run commands on your computer:

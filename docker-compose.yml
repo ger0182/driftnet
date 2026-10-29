@@ -1,0 +1,62 @@
+name: driftnet
+
+services:
+  driftnet:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: driftnet-local:latest
+    container_name: driftnet
+    restart: unless-stopped
+    environment:
+      PORT: "8787"
+      DRIFTNET_HOST: "0.0.0.0"
+      DRIFTNET_HOME: "/data"
+      DRIFTNET_OPEN: "0"
+      DRIFTNET_ACCESS: "private"
+      DRIFTNET_TOKEN: "${DRIFTNET_TOKEN:-}"
+      DRIFTNET_LANGUAGE: "${DRIFTNET_LANGUAGE:-Traditional Chinese (Taiwan)}"
+      DRIFTNET_LOCALE: "${DRIFTNET_LOCALE:-zh-TW}"
+      DRIFTNET_LLM_PROVIDER: "${DRIFTNET_LLM_PROVIDER:-}"
+      DRIFTNET_LLM_MODEL: "${DRIFTNET_LLM_MODEL:-}"
+      DRIFTNET_LLM_API_KEY: "${DRIFTNET_LLM_API_KEY:-}"
+      DRIFTNET_LLM_BASE_URL: "${DRIFTNET_LLM_BASE_URL:-}"
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    ports:
+      - "127.0.0.1:8787:8787"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8787/').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    networks:
+      - driftnet-network
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    depends_on:
+      driftnet:
+        condition: service_healthy
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+    environment:
+      TUNNEL_TOKEN: "${CLOUDFLARE_TUNNEL_TOKEN:-}"
+    networks:
+      - driftnet-network
+
+networks:
+  driftnet-network:
+    name: driftnet-network
+    driver: bridge
