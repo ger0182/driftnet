@@ -8,7 +8,11 @@
     "noEmit": true,
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "@driftnet/core": ["./packages/core/src/index.ts"],
+      "@driftnet/core/*": ["./packages/core/src/*"]
+    }
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/*/src", "apps/*/test"]
+  "include": ["packages/*/src", "packages/*/test", "apps/*/src", "apps/*/test", "api"]
 }
