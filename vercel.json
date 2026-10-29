@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install --no-frozen-lockfile",
   "functions": {
     "api/index.ts": {
       "includeFiles": "apps/server/public/**"
@@ -8,7 +9,7 @@
   "rewrites": [
     {
       "source": "/:dnPath*",
-      "destination": "/api/index"
+      "destination": "/api/index?dnPath=:dnPath*"
     }
   ]
 }
