@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
-import { LATEST_VERSION, migrate } from "@driftnet/core/migrations";
-import { reindexAll } from "@driftnet/core/search-index";
+import { LATEST_VERSION, migrate } from "../packages/core/src/migrations.ts";
+import { reindexAll } from "../packages/core/src/search-index.ts";
 
 const SNAPSHOT_VERSION = 1 as const;
 const BEGIN = "<!-- DRIFTNET_STATE_BEGIN -->";
@@ -179,8 +179,6 @@ function columnsOf(db: DatabaseSync, table: TableName): Set<string> {
 function restore(db: DatabaseSync, snapshot: Snapshot): void {
   db.exec("BEGIN");
   try {
-    // Remove children before parents. SQLite's foreign-key enforcement is off in
-    // the current Store, but this order is safe if it is enabled in the future.
     for (const table of [...TABLES].reverse()) db.exec(`DELETE FROM ${table}`);
 
     for (const table of TABLES) {
@@ -213,7 +211,6 @@ function takeSnapshot(db: DatabaseSync): Snapshot {
   };
 }
 
-/** Build the temporary SQLite index from the canonical Markdown file. */
 export async function hydrateFromGithub(dbPath: string, env: NodeJS.ProcessEnv): Promise<HydrateResult> {
   const db = new DatabaseSync(dbPath);
   try {
@@ -227,11 +224,6 @@ export async function hydrateFromGithub(dbPath: string, env: NodeJS.ProcessEnv):
   }
 }
 
-/**
- * Persist the whole logical catalogue as Markdown. expectedSha is the version
- * this runtime hydrated from, so GitHub rejects a concurrent overwrite instead
- * of silently losing another Vercel instance's write.
- */
 export async function persistToGithub(dbPath: string, env: NodeJS.ProcessEnv, expectedSha: string | null): Promise<string> {
   const c = config(env);
   const db = new DatabaseSync(dbPath);
