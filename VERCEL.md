@@ -1,6 +1,6 @@
 # Deploy Driftnet on Vercel with GitHub Markdown storage
 
-This deployment mode keeps Driftnet's existing UI, routes, folders, search and history model while replacing durable SQLite storage with a Markdown snapshot committed to a separate GitHub repository.
+This deployment mode keeps Driftnet's existing UI, routes, folders, search and history model while moving durable state out of Vercel's ephemeral filesystem and into a separate private GitHub repository.
 
 ## Architecture
 
@@ -8,7 +8,7 @@ This deployment mode keeps Driftnet's existing UI, routes, folders, search and h
 Browser / agents
       |
       v
-Vercel Function (api/index.ts)
+Vercel Function (api/index.js -> bundled handler)
       |
       +-- /tmp/driftnet-*.db   temporary SQLite runtime index
       |
@@ -19,7 +19,7 @@ Vercel Function (api/index.ts)
         data/driftnet-state.md   canonical durable state
 ```
 
-The SQLite file under `/tmp` is disposable. Every Vercel runtime hydrates it from the Markdown file. After a successful mutating request, Driftnet commits the logical tables back to the Markdown file.
+The SQLite file under `/tmp` is disposable. Every new Vercel runtime hydrates it from the Markdown snapshot. After a successful mutating request, Driftnet commits the logical tables back to GitHub.
 
 `item_fts` and `item_vec` are intentionally not persisted. Full-text search is rebuilt from canonical data during hydration; semantic vectors are derived data and can be regenerated.
 
@@ -33,7 +33,9 @@ ger0182/driftnet-data
 
 Do not use the public `ger0182/driftnet` repository for persisted data. Notes, share context, internal state and token hashes can be part of the snapshot.
 
-The data repository can start empty. Driftnet creates `data/driftnet-state.md` after the first successful write.
+The repository must have a real default branch before Driftnet can write through the GitHub Contents API. If it is completely empty, initialize it with a README first.
+
+On the first Vercel boot, if `data/driftnet-state.md` does not exist, Driftnet initializes its temporary SQLite database and immediately writes the first canonical Markdown snapshot. No manual data mutation is required to create the first snapshot.
 
 ## 2. Create a fine-grained GitHub token
 
@@ -50,7 +52,7 @@ Do not commit this token to either repository.
 
 Import `ger0182/driftnet` as a Vercel project. For the first test, deploy the `vercel-markdown-storage` branch as a Preview deployment.
 
-The repository root is the Vercel project root. `vercel.json` sends all public paths to `api/index.ts`, which restores the original request path and hands the request to Driftnet's existing Node HTTP router.
+The repository root is the Vercel project root. `vercel.json` sends public paths to the serverless entrypoint, which restores the original request path and hands the request to Driftnet's existing Node HTTP router. The deployment build bundles the monorepo TypeScript into JavaScript before Vercel executes it.
 
 ## 4. Configure Vercel environment variables
 
@@ -65,6 +67,8 @@ DRIFTNET_DATA_BRANCH=main
 DRIFTNET_DATA_PATH=data/driftnet-state.md
 ```
 
+Store `DRIFTNET_TOKEN` and `DRIFTNET_GITHUB_TOKEN` as Vercel Sensitive environment variables.
+
 `DRIFTNET_PUBLIC_URL` is optional on Vercel. When it is absent, the adapter derives it from `VERCEL_PROJECT_PRODUCTION_URL` or `VERCEL_URL`.
 
 The adapter refuses to start if `DRIFTNET_DATA_REPO` is public. `DRIFTNET_ALLOW_PUBLIC_DATA_REPO=1` exists only as an explicit safety override and should normally remain unset.
@@ -74,18 +78,11 @@ The adapter refuses to start if `DRIFTNET_DATA_REPO` is public. `DRIFTNET_ALLOW_
 Check these in order:
 
 1. Open `/` and confirm the Driftnet UI loads.
-2. Confirm private mode requests without the admin/read key are rejected as expected.
-3. Sign in with `DRIFTNET_TOKEN`.
-4. Add one test item or note.
-5. Open the private data repository and confirm `data/driftnet-state.md` was created.
-6. Make a second change and confirm GitHub shows a new `data: persist Driftnet ...` commit.
-7. Redeploy or open a fresh Preview instance and confirm the saved data is restored.
-
-Responses served by the Vercel adapter include:
-
-```text
-x-driftnet-storage: github-markdown
-```
+2. Confirm the response includes `x-driftnet-storage: github-markdown`.
+3. Open the private data repository and confirm `data/driftnet-state.md` exists after the first boot.
+4. Sign in with `DRIFTNET_TOKEN` and add one test item or note.
+5. Confirm GitHub shows a new `data: persist Driftnet ...` commit.
+6. Redeploy or open a fresh Preview instance and confirm the saved data is restored.
 
 ## Important Vercel-mode differences
 
@@ -109,14 +106,21 @@ For a single-user/private Driftnet instance this is an acceptable first-stage mi
 
 ## Data format
 
-The Markdown file is intentionally readable in GitHub and contains a marked JSON block:
+The Markdown file contains a versioned JSON snapshot of the canonical Driftnet tables:
 
 ```text
 # Driftnet data snapshot
 
 <!-- DRIFTNET_STATE_BEGIN -->
-{ ... logical Driftnet tables ... }
+{
+  "driftnetSnapshot": 1,
+  "schema": 7,
+  "updatedAt": "...",
+  "tables": { ... }
+}
 <!-- DRIFTNET_STATE_END -->
 ```
+
+The GitHub Contents API transports the Markdown file as base64, but the file stored in the repository is ordinary readable Markdown containing JSON. SQLite on Vercel remains only a temporary runtime index.
 
 This first Vercel migration uses one canonical Markdown snapshot so all current Driftnet features can be preserved without rewriting the mature SQLite-backed `Store`. A later migration can split cards/notes into individual Markdown files while keeping the same Vercel/GitHub boundary.
