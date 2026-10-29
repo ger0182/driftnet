@@ -52,6 +52,7 @@ DRIFTNET_LOCALE=zh-TW
 
    ```dotenv
    CLOUDFLARE_TUNNEL_TOKEN=eyJ...
+   DRIFTNET_PUBLIC_URL=https://driftnet.example.com
    ```
 
 4. 在該 Tunnel 新增 **Public Hostname / Published application route**：
@@ -62,6 +63,8 @@ DRIFTNET_LOCALE=zh-TW
 `driftnet` 是 Docker Compose service name。不要填 `localhost:8787`：在 `cloudflared` 容器內，`localhost` 代表 cloudflared 自己。兩個服務已加入同一個 `driftnet-network`，所以 cloudflared 能以 service name 解析 driftnet。
 
 Cloudflare 對外提供 HTTPS，容器間則在私有 Docker network 使用 HTTP。不要在 Cloudflare、GitHub 或文件中貼出 Token。
+
+`DRIFTNET_PUBLIC_URL` 請填完整的正式 HTTPS 網址；driftnet 會用它產生卡片與聊天室回覆中的外部連結。尚未建立 Public Hostname 時可先保持空白。
 
 尚未取得 Tunnel Token 時，可以先完成 driftnet 本機測試；cloudflared 會因沒有 Token 而無法建立連線，但不影響資料與 image 設定。取得 Token 後填入 `.env` 並再次執行 `docker compose up -d`。
 
