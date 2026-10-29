@@ -1,0 +1,19 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-vercel.mjs",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{vercel-dist/**,apps/server/public/**}"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/api/index?dnPath="
+    },
+    {
+      "source": "/:dnPath*",
+      "destination": "/api/index?dnPath=:dnPath*"
+    }
+  ]
+}
