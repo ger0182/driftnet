@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/index.ts": {
+      "includeFiles": "apps/server/public/**"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/:dnPath*",
+      "destination": "/api/index"
+    }
+  ]
+}
