@@ -1,13 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
 
-await mkdir(".vercel-generated", { recursive: true });
+await mkdir("api", { recursive: true });
 await mkdir("public", { recursive: true });
 await writeFile("public/.vercel-keep", "Driftnet UI is served by the Vercel Function.\n");
 
 await build({
   entryPoints: ["vercel-src/index.ts"],
-  outfile: ".vercel-generated/driftnet-handler.mjs",
+  outfile: "api/index.js",
   bundle: true,
   platform: "node",
   format: "esm",
@@ -21,4 +21,4 @@ await build({
   },
 });
 
-console.log("Built Vercel handler: .vercel-generated/driftnet-handler.mjs");
+console.log("Built Vercel handler: api/index.js");
