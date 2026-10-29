@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node scripts/build-vercel.mjs",
   "functions": {
-    "api/*.ts": {
-      "includeFiles": "{apps/server/src/**,apps/server/public/**,packages/core/src/**,api/vercel-persistence.ts}"
+    "api/index.js": {
+      "includeFiles": "{.vercel-generated/**,apps/server/public/**}"
     }
   },
   "rewrites": [
