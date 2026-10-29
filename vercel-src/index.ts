@@ -36,7 +36,14 @@ async function buildRuntime(): Promise<Runtime> {
   const hydrated = await hydrateFromGithub(dbPath, env);
   const dn = createDriftnet(env);
   const server = createApp({ dn, env, port: 0 });
-  return { server, dbPath, sourceSha: hydrated.sourceSha };
+
+  // First boot needs a canonical GitHub snapshot even before the first API mutation.
+  // createDriftnet() may initialize persistent state, so snapshot only after it is created.
+  const sourceSha = hydrated.found
+    ? hydrated.sourceSha
+    : await persistToGithub(dbPath, env, null);
+
+  return { server, dbPath, sourceSha };
 }
 
 function getRuntime(): Promise<Runtime> {
