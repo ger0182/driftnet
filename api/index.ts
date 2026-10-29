@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
 import { createDriftnet } from "@driftnet/core";
-import { createApp } from "../apps/server/src/app.ts";
+import { createApp } from "@driftnet/server";
 import { assertPrivateDataRepo, hydrateFromGithub, persistToGithub, remoteDataSha } from "./vercel-persistence.ts";
 
 interface Runtime {
@@ -19,8 +19,6 @@ function configureEnvironment(): NodeJS.ProcessEnv {
   env.DRIFTNET_ACCESS ||= "private";
   if (!env.DRIFTNET_TOKEN) throw new Error("DRIFTNET_TOKEN is required for a Vercel deployment");
 
-  // Vercel exposes a deployment hostname without a scheme. The production URL
-  // wins when present; previews fall back to the current deployment URL.
   if (!env.DRIFTNET_PUBLIC_URL) {
     const host = env.VERCEL_PROJECT_PRODUCTION_URL || env.VERCEL_URL;
     if (host) env.DRIFTNET_PUBLIC_URL = `https://${host}`;
@@ -32,8 +30,6 @@ async function buildRuntime(): Promise<Runtime> {
   const env = configureEnvironment();
   await assertPrivateDataRepo(env);
 
-  // A Vercel Function filesystem is not durable. Each warm instance gets a
-  // private temporary SQLite index; GitHub Markdown remains the source of truth.
   const dbPath = `/tmp/driftnet-${process.pid}-${randomUUID()}.db`;
   env.DRIFTNET_DB = dbPath;
   const hydrated = await hydrateFromGithub(dbPath, env);
@@ -49,10 +45,6 @@ function getRuntime(): Promise<Runtime> {
   });
 }
 
-/**
- * Rewrites add the matched wildcard as ?dnPath=... at the destination. Restore
- * the URL that Driftnet's existing router expects before emitting the request.
- */
 function restoreOriginalUrl(req: IncomingMessage): void {
   const current = new URL(req.url ?? "/api/index", "http://driftnet.local");
   const path = current.searchParams.get("dnPath");
@@ -69,8 +61,6 @@ function isMutating(req: IncomingMessage): boolean {
 async function freshRuntime(forceCheck: boolean): Promise<Runtime> {
   let runtime = await getRuntime();
   const now = Date.now();
-  // Reads use a short TTL so a new warm instance does not hammer GitHub on every
-  // asset request. Writes always check immediately before changing local state.
   if (forceCheck || now - lastRemoteCheck > 5_000) {
     const sha = await remoteDataSha(process.env);
     lastRemoteCheck = now;
@@ -123,9 +113,6 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
         runtime.sourceSha = await persistToGithub(runtime.dbPath, process.env, runtime.sourceSha);
         lastRemoteCheck = Date.now();
       } catch (err) {
-        // Do not silently let a stale warm instance overwrite a newer GitHub
-        // copy. GitHub's expected SHA rejects the race; force a full rehydrate
-        // for the next request and make the failure visible in Vercel logs.
         runtimePromise = undefined;
         console.error("[vercel-persistence] write was served but persistence failed:", err);
       }
