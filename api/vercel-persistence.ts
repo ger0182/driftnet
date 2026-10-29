@@ -1,6 +1,6 @@
 import { DatabaseSync } from "node:sqlite";
-import { LATEST_VERSION, migrate } from "../packages/core/src/migrations.ts";
-import { reindexAll } from "../packages/core/src/search-index.ts";
+import { LATEST_VERSION, migrate } from "@driftnet/core/migrations";
+import { reindexAll } from "@driftnet/core/search-index";
 
 const SNAPSHOT_VERSION = 1 as const;
 const BEGIN = "<!-- DRIFTNET_STATE_BEGIN -->";
