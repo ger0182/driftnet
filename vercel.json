@@ -1,8 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/index.ts": {
-      "includeFiles": "{apps/server/src/**,apps/server/public/**,packages/core/src/**}"
+    "api/*.ts": {
+      "includeFiles": "{apps/server/src/**,apps/server/public/**,packages/core/src/**,api/vercel-persistence.ts}"
     }
   },
   "rewrites": [
