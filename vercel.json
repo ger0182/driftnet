@@ -3,7 +3,7 @@
   "buildCommand": "node scripts/build-vercel.mjs",
   "functions": {
     "api/index.js": {
-      "includeFiles": "{.vercel-generated/**,apps/server/public/**}"
+      "includeFiles": "apps/server/public/**"
     }
   },
   "rewrites": [
