@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { IncomingMessage, Server, ServerResponse } from "node:http";
-import { createDriftnet } from "@driftnet/core";
-import { createApp } from "@driftnet/server";
+import { createDriftnet } from "../packages/core/src/index.ts";
+import { createApp } from "../apps/server/src/app.ts";
 import { assertPrivateDataRepo, hydrateFromGithub, persistToGithub, remoteDataSha } from "./vercel-persistence.ts";
 
 interface Runtime {
