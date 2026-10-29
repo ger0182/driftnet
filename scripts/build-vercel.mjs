@@ -17,7 +17,7 @@ await build({
     "import.meta.url": "__DRIFTNET_APP_MODULE_URL__",
   },
   banner: {
-    js: `const __DRIFTNET_APP_MODULE_URL__ = new URL("apps/server/src/app.ts", "file://" + process.cwd() + "/").href;`,
+    js: `import { createRequire as __driftnetCreateRequire } from "node:module";\nconst require = __driftnetCreateRequire(import.meta.url);\nconst __DRIFTNET_APP_MODULE_URL__ = new URL("apps/server/src/app.ts", "file://" + process.cwd() + "/").href;`,
   },
 });
 
