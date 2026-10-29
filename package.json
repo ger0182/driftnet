@@ -25,10 +25,6 @@
     "build:demo": "node scripts/build-demo.mjs",
     "e2e:demo": "node apps/server/e2e/demo-site.mjs"
   },
-  "dependencies": {
-    "@driftnet/core": "workspace:*",
-    "@driftnet/server": "workspace:*"
-  },
   "devDependencies": {
     "@types/node": "^22.15.0",
     "@types/ws": "^8.18.2",
